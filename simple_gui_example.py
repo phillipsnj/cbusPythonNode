@@ -34,17 +34,6 @@ class MERGGUI(tk.Tk):
         self.mergnode.acon(button_id)
 
 
-# class MyApplication(tk.Tk):
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.title("MERG Gui Test")
-#         self.geometry("800x480")
-#         self.resizable(width=False, height=False)
-#         MergView(self).grid(sticky=(tk.E + tk.W + tk.N + tk.S))
-#         self.columnconfigure(0, weight=1)
-
-
 if __name__ == '__main__':
     app = MERGGUI()
     app.mainloop()
