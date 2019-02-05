@@ -130,7 +130,7 @@ class BasicNode(threading.Thread):
             flags += 8
         if self.coe:
             flags += 16
-        output = self.get_header() + "B6" + self.pad(self.node_id, 4) + self.pad(self.manuf_id, 2) + self.pad(self.module_id, 2) + self.pad(self.flags(), 2)
+        output = self.get_header() + "B6" + self.pad(self.nodeId, 4) + self.pad(self.manufId, 2) + self.pad(self.moduleId, 2) + self.pad(self.flags(), 2)
         self.send(output)
 
     def parameter(self, param):
@@ -187,14 +187,18 @@ class BasicNode(threading.Thread):
                 # self.parameter(parameter_id)
                 self.send(str(self.parameter(parameter_id)))
 
+        def qnn(msg):
+            print("pnn : " + msg)
+            self.pnn()
+
         opcode = self.get_op_code(msg)
         action = {
             "90": acc_on,
             "91": acc_off,
             "98": asc_on,
             "99": asc_off,
-            "73": paran
-        }
+            "73": paran,
+            "0D": qnn        }
         if opcode in action:
             print("Processing Opcode : " + opcode)
             action[opcode](msg)
