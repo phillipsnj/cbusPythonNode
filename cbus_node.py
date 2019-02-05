@@ -198,7 +198,7 @@ class BasicNode(threading.Thread):
             "98": asc_on,
             "99": asc_off,
             "73": paran,
-            "0D": qnn        }
+            "0D": qnn}
         if opcode in action:
             print("Processing Opcode : " + opcode)
             action[opcode](msg)
@@ -219,8 +219,13 @@ class EthNode(BasicNode):
             while True:
                 # print('receiving data...')
                 data = self.s.recv(1024)
+                output = data.decode()
+                messages = output.split(';')
+                del messages[-1]
+                for msg in messages:
+                    # self.action_opcode(data.decode())
+                    self.action_opcode(msg + ";")
                 # print(data.decode()+ " : " +mergCbus.getOpCode(data.decode()))
-                self.action_opcode(data.decode())
                 # self.execute(data.decode())
                 if not data:
                     break
