@@ -16,11 +16,11 @@ class BasicNode(threading.Thread):
         self.name = "PYTHON"
         self.minorVersion = "A"
         self.numEvents = 255
-        self.numEventVariables = 3
-        self.numNodeVariables = 2
-        self.majorVersion = 2
+        self.numEventVariables = 0
+        self.numNodeVariables = 0
+        self.majorVersion = 1
         self.beta = 1  # 0  for normal version else beta version number
-        self.consumer = True
+        self.consumer = False
         self.producer = True
         self.flim = False
         self.bootloader = False
@@ -130,7 +130,7 @@ class BasicNode(threading.Thread):
             flags += 8
         if self.coe:
             flags += 16
-        output = self.get_header() + "B6" + self.pad(self.nodeId, 4) + self.pad(self.manufId, 2) + self.pad(self.moduleId, 2) + self.pad(self.flags(), 2)
+        output = self.get_header() + "B6" + self.pad(self.nodeId, 4) + self.pad(self.manufId, 2) + self.pad(self.moduleId, 2) + self.pad(self.flags(), 2)+ ";"
         self.send(output)
 
     def parameter(self, param):
@@ -188,7 +188,7 @@ class BasicNode(threading.Thread):
                 self.send(str(self.parameter(parameter_id)))
 
         def qnn(msg):
-            print("pnn : " + msg)
+            print("qnn : " + msg)
             self.pnn()
 
         opcode = self.get_op_code(msg)
@@ -198,7 +198,8 @@ class BasicNode(threading.Thread):
             "98": asc_on,
             "99": asc_off,
             "73": paran,
-            "0D": qnn}
+            "0D": qnn
+        }
         if opcode in action:
             print("Processing Opcode : " + opcode)
             action[opcode](msg)

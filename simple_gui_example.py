@@ -3,7 +3,7 @@ from tkinter import ttk
 import cbus_node
 import json
 
-host = "192.168.0.102"  # Get local machine name
+host = "MergTest"  # Get local machine name
 port = 5550  # Reserve a port for your service.
 
 
@@ -16,8 +16,8 @@ class MERGGUI(tk.Tk):
         self.resizable(width=False, height=False)
         self.mergnode = cbus_node.EthNode(260, self.main_func, host, port)
         self.mergnode.start()
-        self.mergnode.add_long_event(400, 1, ["red", "green"])
-        self.mergnode.add_long_event(400, 29, ["green", "red"])
+        self.mergnode.add_long_event(400, 29, ["red", "green"])
+        self.mergnode.add_long_event(400, 1, ["green", "red"])
         self.nodeFrame = tk.LabelFrame(self, text=" Simple CBus Node: ")
         self.nodeFrame.grid(row=0, columnspan=7, sticky='WE', padx=5, pady=5, ipadx=5, ipady=5)
         self.label = ttk.Label(self.nodeFrame, text="Simple GUI Example")
