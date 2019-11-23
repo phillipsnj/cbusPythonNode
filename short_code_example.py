@@ -1,7 +1,7 @@
 import cbus_node
 import json
 
-host = "MergBoard"  # Address of the cbus network interface
+host = "192.168.8.124"  # Address of the cbus network interface
 port = 5550             # Reserve a port for your service.
 
 
@@ -15,8 +15,9 @@ def main_func(msg):
 
 node = cbus_node.EthNode(252, main_func, host, port)  # Create cbus module
 
-node.add_long_event(256, 107, 5)  # Teach a long event (nodeId, eventId, parameters)
-node.add_short_event(20, 2)  # Teach a short event (eventId, parameters)
+node.teach_long_event(402, 4, 1)  # Teach a long event (nodeId, eventId, parameters)
+node.teach_long_event(402, 32, 5)  # Teach a long event (nodeId, eventId, parameters)
+node.teach_short_event(20, 2)  # Teach a short event (eventId, parameters)
 
 node.run()
 

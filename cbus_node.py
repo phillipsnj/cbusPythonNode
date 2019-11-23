@@ -8,6 +8,8 @@ class BasicNode(threading.Thread):
         threading.Thread.__init__(self)
         self.function = my_function
         self.nodeId = node_id
+        self.debug = False
+        self.count = 0
         self.canId = 75
         self.priority1 = 2
         self.priority2 = 3
@@ -86,12 +88,12 @@ class BasicNode(threading.Thread):
             flags += 16
         return flags
 
-    def add_long_event(self, node_id, event_id, variables):
+    def teach_long_event(self, node_id, event_id, variables):
         new_id = self.pad(node_id, 4) + self.pad(event_id, 4)
         self.events[new_id] = variables
         print(json.dumps(self.events, indent=4))
 
-    def add_short_event(self, event_id, variables):
+    def teach_short_event(self, event_id, variables):
         new_id = self.pad(0, 4) + self.pad(event_id, 4)
         self.events[new_id] = variables
         print(json.dumps(self.events, indent=4))
@@ -134,61 +136,79 @@ class BasicNode(threading.Thread):
         self.send(output)
 
     def parameter(self, param):
-        print("parameter : " + str(self.nodeId) + " : " + str(param) + " : " + str(self.parameters[param]))
+        if self.debug :
+            print("parameter : " + str(self.nodeId) + " : " + str(param) + " : " + str(self.parameters[param]))
         output = self.get_header() + "9B" + self.pad(self.nodeId, 4) + self.pad(param, 2) + self.parameters[param] + ";"
-        print("parameter output : " + output)
+        if self.debug :
+            print("parameter output : " + output)
         return output
 
     def action_opcode(self, msg):
         def acc_on(msg):
-            print("acc_on : " + msg + " Event : " + self.get_str(msg, 9, 8))
+            if self.debug :
+                print("acc_on : " + msg + " Event : " + self.get_str(msg, 9, 8))
             if self.get_str(msg, 9, 8) in self.events:
-                print("Event is Known")
+                if self.debug :
+                    print("Event is Known")
                 self.execute({'task': 'on', 'variables': self.events[self.get_str(msg, 9, 8)]})
             else:
-                print("Event is Unknown")
+                if self.debug :
+                    print("Event is Unknown")
 
         def acc_off(msg):
-            print("acc_off : " + msg)
+            if self.debug :
+                print("acc_off : " + msg)
             if self.get_str(msg, 9, 8) in self.events:
-                print("Event is Known")
+                if self.debug :
+                    print("Event is Known")
                 self.execute({'task': 'off', 'variables': self.events[self.get_str(msg, 9, 8)]})
             else:
-                print("Event is Unknown")
+                if self.debug :
+                    print("Event is Unknown")
 
         def asc_on(msg):
             event = "0000" + self.get_str(msg, 13, 4)
-            print("asc_on : " + msg + " Event : " + event)
+            if self.debug :
+                print("asc_on : " + msg + " Event : " + event)
             if event in self.events:
-                print("Short Event is Known : 0000"+self.get_str(msg, 13, 8))
+                if self.debug :
+                    print("Short Event is Known : 0000"+self.get_str(msg, 13, 8))
                 self.execute({'task': 'on', 'variables': self.events[event]})
             else:
-                print("Event is Unknown")
+                if self.debug :
+                    print("Event is Unknown")
 
         def asc_off(msg):
             event = "0000"+self.get_str(msg, 13, 4)
-            print("asc_off : " + msg + " Event : " + event)
+            if self.debug :
+                print("asc_off : " + msg + " Event : " + event)
             if event in self.events:
-                print("Short Event is Known : 0000" + self.get_str(msg, 13, 8))
+                if self.debug :
+                    print("Short Event is Known : 0000" + self.get_str(msg, 13, 8))
                 self.execute({'task': 'off', 'variables': self.events[event]})
             else:
-                print("Event is Unknown")
+                if self.debug :
+                    print("Event is Unknown")
 
         def paran(msg):
             parameter_id = self.get_int(msg, 13, 2)
             parameter_value = self.parameters[parameter_id]
-            print("paran : " + msg + " nodeId : " + str(self.get_node_id(msg)))
+            if self.debug :
+                print("paran : " + msg + " nodeId : " + str(self.get_node_id(msg)))
             if self.get_node_id(msg) == self.nodeId:
-                print("paran for " + str(self.nodeId) +
+                if self.debug :
+                    print("paran for " + str(self.nodeId) +
                       " Parameter " + str(parameter_id) +
                       " Value : "+str(parameter_value))
-                print("Paran Output " + str(self.parameter(parameter_id)))
+                if self.debug :
+                    print("Paran Output " + str(self.parameter(parameter_id)))
                 # time.sleep(1)
                 # self.parameter(parameter_id)
                 self.send(str(self.parameter(parameter_id)))
 
         def qnn(msg):
-            print("qnn : " + msg)
+            if self.debug :
+                print("qnn : " + msg)
             self.pnn()
 
         opcode = self.get_op_code(msg)
@@ -200,11 +220,16 @@ class BasicNode(threading.Thread):
             "73": paran,
             "0D": qnn
         }
+        self.count += 1
+        if self.debug :
+            print("Msg Count" + str(self.count))
         if opcode in action:
-            print("Processing Opcode : " + opcode)
+            if self.debug :
+                print("Processing Opcode : " + opcode)
             action[opcode](msg)
         else:
-            print("Unknown Opcode : " + opcode)
+            if self.debug :
+                print("Unknown Opcode : " + opcode)
 
 
 class EthNode(BasicNode):
