@@ -4,7 +4,6 @@ import json
 host = "192.168.8.124"  # Address of the cbus network interface
 port = 5550             # Reserve a port for your service.
 
-
 def main_func(msg):
     print("MESSAGE : "+json.dumps(msg, indent=4))
     if msg['task'] == "on":

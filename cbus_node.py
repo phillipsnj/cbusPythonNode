@@ -1,6 +1,7 @@
 import json
 import socket
 import threading
+import struct
 
 
 class BasicNode(threading.Thread):
@@ -113,6 +114,7 @@ class BasicNode(threading.Thread):
         self.send(output)
 
     def ason(self, event_id):
+        print("ASON :"+str(event_id))
         output = self.get_header() + "98" + self.pad(self.nodeId, 4) + self.pad(event_id, 4) + ";"
         self.send(output)
 
@@ -264,3 +266,59 @@ class EthNode(BasicNode):
         # time.sleep(1)
         print("Child Send : " + msg)
         self.s.send(msg.encode())
+
+class canNode(BasicNode):
+    def __init__(self, node_id, my_function):
+        BasicNode.__init__(self, node_id, my_function)
+        self.can_frame_fmt = "=IB3x8s"
+        self.can_frame_size = struct.calcsize(self.can_frame_fmt)
+        self.s = socket.socket(socket.AF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
+        self.s.bind(('can0',))
+
+    def dissect_can_frame(self, frame):
+        can_id, can_dlc, data = struct.unpack(self.can_frame_fmt, frame)
+        return (can_id, can_dlc, data[:can_dlc])
+
+    def cbus_to_can(self, cbus_f):
+        #    print('-cbus_to_can')
+        #    print('--cbus_f:',cbus_f,cbus_f[2:6],cbus_f[7:])
+        can_id = int(int(cbus_f[2:6], 16) / 32)
+        data = bytes.fromhex(cbus_f[7:-1])
+        can_dlc = len(data)
+        data = data.ljust(8, b'\x00')
+        return struct.pack(self.can_frame_fmt, can_id, can_dlc, data)
+        #return (build_can_frame(can_id, data))
+
+    def can_to_cbus(self, can_f):
+        can_id, can_dlc, data = self.dissect_can_frame(can_f)
+        t = ':S'
+        t += ('0000' + format(can_id * 32, 'X'))[-4:]
+        t += 'N'
+        for d in data:
+            t += ('00' + format(d, 'X'))[-2:]
+        t += ';'
+        return (t)
+
+    def send(self, can_frame):
+        try:
+            can_f = self.cbus_to_can(can_frame)
+            self.s.send(can_f)
+            print('Sending CAN frame')
+        except OSError:
+            print('Error sending CAN frame')
+
+    def run(self):
+        try:
+            while True:
+                #print('-----------------------')
+                cf, addr = self.s.recvfrom(self.can_frame_size)
+        #    print('     ', cf)
+        #    print('Received: can_id=%x, can_dlc=%x, data=%s' % dissect_can_frame(cf))
+                cbus_frame = self.can_to_cbus(cf)
+                #can_f = cbus_to_can(cbus_frame)
+                #print("cbus_frame ", cbus_frame)
+                self.action_opcode(cbus_frame + ";")
+        except KeyboardInterrupt:
+            print('interrupted!')
+            self.close()
+        print('connection closed')
