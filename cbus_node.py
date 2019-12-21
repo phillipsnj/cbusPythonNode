@@ -267,7 +267,7 @@ class EthNode(BasicNode):
         print("Child Send : " + msg)
         self.s.send(msg.encode())
 
-class canNode(BasicNode):
+class CanNode(BasicNode):
     def __init__(self, node_id, my_function):
         BasicNode.__init__(self, node_id, my_function)
         self.can_frame_fmt = "=IB3x8s"
