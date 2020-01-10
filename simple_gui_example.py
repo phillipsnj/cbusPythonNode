@@ -3,7 +3,7 @@ from tkinter import ttk
 import cbus_node
 import json
 
-host = "192.168.8.124"  # Get local machine name
+host = "192.168.8.200"  # Get local machine name
 port = 5550  # Reserve a port for your service.
 
 

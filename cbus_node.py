@@ -5,7 +5,15 @@ import struct
 
 
 class BasicNode(threading.Thread):
+    """
+    Class for creating a CBUS SLIM Module.
+    """
     def __init__(self, node_id, my_function):
+        """
+        Initialization of the class requires 2 parameters
+        :param node_id: The node id of the Module you are creating
+        :param my_function:  The name of the function the executes when a recognised Event is Received
+        """
         threading.Thread.__init__(self)
         self.function = my_function
         self.nodeId = node_id
@@ -59,7 +67,16 @@ class BasicNode(threading.Thread):
         return format(num, "0" + str(length) + "X")
 
     def get_header(self):
-        return ":SB020N"
+        output = 0
+        output = output + self.priority1
+        output = output << 2
+        output = output + self.priority2
+        output = output << 7
+        output = output + self.canId
+        output = output << 5
+        # print (":S"+format(output, '02x')+"N")
+        return ":S"+format(output, '02x')+"N"
+        #return ":SB020N"
 
     @staticmethod
     def get_int(msg, start, length):
@@ -90,22 +107,52 @@ class BasicNode(threading.Thread):
         return flags
 
     def teach_long_event(self, node_id, event_id, variables):
+        """
+        Teaches a long CBUS event to the module
+        :param node_id: node id of the event
+        :param event_id: event od of the event
+        :param variables: Variable that will be sent to the function when event
+                is received. Can be String, number, list etc
+        """
         new_id = self.pad(node_id, 4) + self.pad(event_id, 4)
         self.events[new_id] = variables
-        print(json.dumps(self.events, indent=4))
+        if self.debug:
+            print(json.dumps(self.events, indent=4))
 
     def teach_short_event(self, event_id, variables):
+        """
+        Teaches a short CBUS event to the module
+        :param event_id: event of the short event
+        :param variables: Variable that will be sent to the function when event
+               is received. Can be String, number, list etc
+        """
         new_id = self.pad(0, 4) + self.pad(event_id, 4)
         self.events[new_id] = variables
-        print(json.dumps(self.events, indent=4))
+        if self.debug:
+            print(json.dumps(self.events, indent=4))
 
     def execute(self, msg):
+        """
+        Executes the function passed when class created.
+        :param msg: Dictionary containing the message task (On|Off) and Variables
+                    which was passed when the event was taught to the module.
+        """
         self.function(msg)
 
     def send(self, msg):
+        """
+        This function send a message to the CBUS network. In the Parent class it
+        does nothing, it will be overridden by a child class to handle the network
+        type specifically
+        :param msg: CBUS Message to be sent to the CBUS Network
+        """
         print("Parent Send : " + msg)
 
     def acon(self, event_id):
+        """
+        Sends a Accessory On Long Event to the CBUS Network
+        :param event_id: Id for the event
+        """
         output = self.get_header() + "90" + self.pad(self.nodeId, 4) + self.pad(event_id, 4) + ";"
         self.send(output)
 
@@ -235,7 +282,17 @@ class BasicNode(threading.Thread):
 
 
 class EthNode(BasicNode):
+    """
+    Child class of BasicNode to connect via a ethernet or wifi connection.
+    """
     def __init__(self, node_id, my_function, host, port):
+        """
+        Initialization of the class requires 2 parameters
+        :param node_id: The node id of the Module you are creating
+        :param my_function:  The name of the function the executes when a recognised Event is Received.
+        :param host Address of the CBUS network interface.
+        :param host port address.
+        """
         BasicNode.__init__(self, node_id, my_function)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.host = host  # Get local machine name
