@@ -321,7 +321,7 @@ class EthNode(BasicNode):
 
     def send(self, msg):
         # time.sleep(1)
-        print("Child Send : " + msg)
+        # print("Child Send : " + msg)
         self.s.send(msg.encode())
 
 class CanNode(BasicNode):

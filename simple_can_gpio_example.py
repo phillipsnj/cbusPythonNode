@@ -1,5 +1,4 @@
 import cbus_node
-import json
 from gpiozero import LED, Button
 
 node_id = 252  # ID number for the new node.
@@ -11,9 +10,7 @@ button = Button(17)
 
 
 def main_func(msg):  # Define the function to perform processing.
-    # print("MESSAGE : "+json.dumps(msg, indent=4))
     if msg["task"] == "on":
-        # msg["variables"]["LED"].on()
         if "redled" in msg["variables"]["LED"]:
             redled.on()
         if "amberled" in msg["variables"]["LED"]:
@@ -21,7 +18,6 @@ def main_func(msg):  # Define the function to perform processing.
         if "greenled" in msg["variables"]["LED"]:
             greenled.on()
     else:
-        # msg["variables"]["LED"].off()
         if "redled" in msg["variables"]["LED"]:
             redled.off()
         if "amberled" in msg["variables"]["LED"]:
@@ -34,15 +30,11 @@ node = cbus_node.CanNode(node_id, main_func)  # Create the cbus node
 
 
 def button_on():
-    # redled.on()
     node.ason(2)
-    # return 0
 
 
 def button_off():
-    # redled.off()
     node.asof(2)
-    # return 0
 
 
 button.when_pressed = button_on
